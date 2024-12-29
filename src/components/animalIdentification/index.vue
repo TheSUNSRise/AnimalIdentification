@@ -20,11 +20,11 @@
             {{ streaming === "video" ? "Close" : "Open" }} Video
           </button>
 
-          <button @click="setVideo(1)">
+          <button @click="setVideo(0)">
             Example Video 1
           </button>
 
-          <button @click="setVideo(2)">
+          <button @click="setVideo(1)">
             Example Video 2
           </button>
 
@@ -32,7 +32,10 @@
 
         <div>
           <input ref="inputM3u8Ref" type="input" v-model="m3u8" />
-          <button @click="selectM3u8">
+          <button @click="defaultM3u8" v-if="!m3u8">
+            default HLS
+          </button>
+          <button v-else @click="selectM3u8">
             {{ streaming === "hls" ? "Close" : "Play" }} HLS
           </button>
         </div>
@@ -50,6 +53,11 @@ import { detectVideo } from "./utils/detect";
 
 // https://sf1-cdn-tos.huoshanstatic.com/obj/media-fe/xgplayer_doc_video/hls/xgplayer-demo.m3u8
 const m3u8 = ref('https://linear-144.frequency.stream/dist/localnow/144/hls/hd/playlist.m3u8')
+
+const exampleVideoUrl = [
+  'https://i.002000.best/file/BAACAgUAAxkDAAMDZ3E0AsqS9TVYZlmZth6nbgWzV6UAAuQUAAJ_LIhXZ6pHUjMnMds2BA.mp4',
+  'https://i.002000.best/file/BAACAgUAAxkDAAMEZ3E0eXNyWZlD1b82RYzDQQG_5DYAAuUUAAJ_LIhXrXYNSFMxdkA2BA.mp4'
+]
 
 const loading = reactive({
   loading: false,
@@ -100,16 +108,18 @@ const changeVideo = (e) => {
 const setVideo = (type: number) => {
   closeVideo()
   closeHlsVideo()
-  type == 1 ? videoRef.value.src = `/public/qq.mp4` : videoRef.value.src = `/public/car.mp4`
+  videoRef.value.src = exampleVideoUrl[type]
   videoRef.value.addEventListener("ended", () => closeVideo()); // add ended video listener
   videoRef.value.style.display = "block"; // show video
   streaming.value = "video"; // set streaming to video 
 }
 
-const setHlsVideo = () => {
+const setHlsVideo = async () => {
   if (!m3u8.value) return
   // 检查浏览器是否支持HLS
   if (Hls.isSupported()) {
+    await initHls()
+
     hls.value.loadSource(m3u8.value);
     hls.value.attachMedia(hlsVideoRef.value);
 
@@ -137,6 +147,10 @@ const selectM3u8 = () => {
   }
 }
 
+const defaultM3u8 = () => {
+  m3u8.value = 'https://linear-144.frequency.stream/dist/localnow/144/hls/hd/playlist.m3u8'
+}
+
 // closing video streaming
 const closeVideo = () => {
   const url = videoRef.value.src;
@@ -155,6 +169,10 @@ const closeHlsVideo = () => {
   hlsVideoRef.value.src = ""; // restore video source
   URL.revokeObjectURL(url); // revoke url
 
+  hls.value.off(Hls.Events.ERROR, () => { })
+  hls.value.off(Hls.Events.MANIFEST_LOADED, () => { })
+  hls.value.off(Hls.Events.MANIFEST_PARSED, () => { })
+  hls.value = null
   streaming.value = null
   m3u8.value = ''
   hlsVideoRef.value.style.display = "none"; // hide video
@@ -193,7 +211,7 @@ onMounted(() => {
       initHls()
 
       nextTick(() => {
-        // setVideo(1)
+        // setVideo(0)
         setHlsVideo()
       })
     })
@@ -264,11 +282,11 @@ const initHlsPlayer = () => {
   align-items: center;
   justify-content: center;
   position: relative;
-  height: 98vh;
 }
 
 .animal-identification-container {
   position: relative;
+  margin: 12px;
 }
 
 .animal-identification-container video {
