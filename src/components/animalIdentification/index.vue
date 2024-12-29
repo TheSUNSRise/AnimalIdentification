@@ -1,7 +1,7 @@
 <template>
   <div class="animal-identification">
 
-    <div v-if="loading.loading">
+    <div v-if="loading.loading" class="loading-text">
       加载模型中... {{ (loading.progress * 100).toFixed(2) }}%
     </div>
     <template v-else>
@@ -54,11 +54,6 @@ import { detectVideo } from "./utils/detect";
 // https://sf1-cdn-tos.huoshanstatic.com/obj/media-fe/xgplayer_doc_video/hls/xgplayer-demo.m3u8
 const m3u8 = ref('https://linear-144.frequency.stream/dist/localnow/144/hls/hd/playlist.m3u8')
 
-const exampleVideoUrl = [
-  'https://i.002000.best/file/BAACAgUAAxkDAAMDZ3E0AsqS9TVYZlmZth6nbgWzV6UAAuQUAAJ_LIhXZ6pHUjMnMds2BA.mp4',
-  'https://i.002000.best/file/BAACAgUAAxkDAAMEZ3E0eXNyWZlD1b82RYzDQQG_5DYAAuUUAAJ_LIhXrXYNSFMxdkA2BA.mp4'
-]
-
 const loading = reactive({
   loading: false,
   progress: 0
@@ -105,10 +100,14 @@ const changeVideo = (e) => {
   streaming.value = "video"; // set streaming to video 
 }
 
-const setVideo = (type: number) => {
+const setVideo = (index: number) => {
   closeVideo()
   closeHlsVideo()
-  videoRef.value.src = exampleVideoUrl[type]
+  if (index === 0) {
+    videoRef.value.src = `${window.location.href}/car.mp4`
+  } else {
+    videoRef.value.src = `${window.location.href}/qq.mp4`
+  }
   videoRef.value.addEventListener("ended", () => closeVideo()); // add ended video listener
   videoRef.value.style.display = "block"; // show video
   streaming.value = "video"; // set streaming to video 
@@ -149,6 +148,8 @@ const selectM3u8 = () => {
 
 const defaultM3u8 = () => {
   m3u8.value = 'https://linear-144.frequency.stream/dist/localnow/144/hls/hd/playlist.m3u8'
+
+  selectM3u8()
 }
 
 // closing video streaming
@@ -164,15 +165,15 @@ const closeVideo = () => {
 };
 
 const closeHlsVideo = () => {
-
   const url = hlsVideoRef.value.src;
   hlsVideoRef.value.src = ""; // restore video source
   URL.revokeObjectURL(url); // revoke url
 
-  hls.value.off(Hls.Events.ERROR, () => { })
-  hls.value.off(Hls.Events.MANIFEST_LOADED, () => { })
-  hls.value.off(Hls.Events.MANIFEST_PARSED, () => { })
-  hls.value = null
+  if (hls.value) {
+    hls.value?.stopLoad()
+    hls.value?.destroy()
+    hls.value = null
+  }
   streaming.value = null
   m3u8.value = ''
   hlsVideoRef.value.style.display = "none"; // hide video
@@ -222,9 +223,8 @@ onMounted(() => {
 const initHls = () => {
   if (Hls.isSupported()) {
     hls.value = new Hls({
-      debug: true, // 添加调试信息
+      debug: false, // 添加调试信息
       xhrSetup: function (xhr) {
-        console.log('xhr', xhr)
         xhr.withCredentials = false
       },
       // 添加重试配置
@@ -293,7 +293,7 @@ const initHlsPlayer = () => {
   display: none;
   width: 100%;
   max-width: 1000px;
-  max-height: 800px;
+  max-height: 600px;
   border-radius: 10px;
 }
 
@@ -303,6 +303,17 @@ const initHlsPlayer = () => {
   left: 0;
   width: 100%;
   height: 100%;
+}
+
+.loading-text {
+  height: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1000px;
+  background-color: #f5f5f50a;
+  border-radius: 10px;
+  margin: 12px 0;
 }
 
 button {
