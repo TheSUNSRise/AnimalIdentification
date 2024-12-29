@@ -6,9 +6,9 @@
     </div>
     <template v-else>
       <div class="animal-identification-container">
-        <video autoPlay muted ref="videoRef" :onPlay="onPlay" />
+        <video autoPlay controls muted ref="videoRef" :onPlay="onPlay" />
 
-        <video autoPlay muted ref="hlsVideoRef" :onPlay="onHlsPlay" />
+        <video autoPlay controls muted ref="hlsVideoRef" :onPlay="onHlsPlay" />
 
         <canvas :width="model.inputShape[1]" :height="model.inputShape[2]" ref="canvasRef" />
       </div>
@@ -295,6 +295,7 @@ const initHlsPlayer = () => {
   max-width: 1000px;
   max-height: 600px;
   border-radius: 10px;
+  background-color: #f5f5f50a;
 }
 
 .animal-identification-container canvas {
@@ -303,6 +304,8 @@ const initHlsPlayer = () => {
   left: 0;
   width: 100%;
   height: 100%;
+  cursor: not-allowed;
+  pointer-events: none; 
 }
 
 .loading-text {
