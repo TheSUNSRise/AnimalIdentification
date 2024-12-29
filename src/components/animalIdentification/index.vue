@@ -33,7 +33,7 @@
         <div>
           <input ref="inputM3u8Ref" type="input" v-model="m3u8" />
           <button @click="defaultM3u8" v-if="!m3u8">
-            default HLS
+            Default HLS
           </button>
           <button v-else @click="selectM3u8">
             {{ streaming === "hls" ? "Close" : "Play" }} HLS
@@ -305,7 +305,7 @@ const initHlsPlayer = () => {
   width: 100%;
   height: 100%;
   cursor: not-allowed;
-  pointer-events: none; 
+  pointer-events: none;
 }
 
 .loading-text {
